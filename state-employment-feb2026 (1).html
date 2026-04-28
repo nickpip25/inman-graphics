@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>State Employment Situation — February 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      background: #f5f5f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      font-size: 13px;
+      color: #666;
+    }
+
+    /* Search */
+    #search-wrap {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    #search-input {
+      width: 100%;
+      padding: 11px 16px;
+      font-size: 15px;
+      border: 1px solid #d0d0cc;
+      border-radius: 10px;
+      background: #fff;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    #search-input:focus {
+      border-color: #888;
+    }
+
+    #dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #d0d0cc;
+      border-radius: 10px;
+      z-index: 20;
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .dd-item {
+      padding: 9px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      color: #1a1a1a;
+    }
+
+    .dd-item:hover,
+    .dd-item.focused {
+      background: #f0f0ed;
+    }
+
+    /* Placeholder */
+    #placeholder {
+      text-align: center;
+      padding: 48px 20px;
+      color: #888;
+      font-size: 14px;
+      background: #fff;
+      border: 1px solid #e8e8e4;
+      border-radius: 12px;
+    }
+
+    /* Result */
+    #result { display: none; }
+
+    .state-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .state-name {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .state-badge {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 8px;
+      background: #f0f0ed;
+      color: #666;
+    }
+
+    /* Metric cards */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .mcard {
+      background: #f0f0ed;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .mcard-lbl {
+      font-size: 11px;
+      color: #777;
+      margin-bottom: 5px;
+      line-height: 1.3;
+    }
+
+    .mcard-val {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .mcard-val.pos { color: #27500a; }
+    .mcard-val.neg { color: #a32d2d; }
+    .mcard-val.warn { color: #854f0b; }
+
+    .mcard-sub {
+      font-size: 11px;
+      color: #888;
+      margin-top: 3px;
+    }
+
+    /* Highlights */
+    .section-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 8px;
+    }
+
+    .highlight-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .hl-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: #555;
+      padding: 10px 13px;
+      background: #fff;
+      border: 1px solid #e8e8e4;
+      border-radius: 8px;
+    }
+
+    .hl-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .hl-dot.pos { background: #639922; }
+    .hl-dot.neg { background: #e24b4a; }
+    .hl-dot.neu { background: #b4b2a9; }
+
+    .footnote {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 14px;
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body { background: #1c1c1a; color: #e8e8e4; }
+      #search-input { background: #2a2a28; border-color: #444; color: #e8e8e4; }
+      #search-input:focus { border-color: #888; }
+      #dropdown { background: #2a2a28; border-color: #444; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+      .dd-item { color: #e8e8e4; }
+      .dd-item:hover, .dd-item.focused { background: #363634; }
+      #placeholder { background: #2a2a28; border-color: #3a3a38; color: #888; }
+      .state-name { color: #e8e8e4; }
+      .state-badge { background: #363634; color: #aaa; }
+      .mcard { background: #2a2a28; }
+      .mcard-lbl { color: #888; }
+      .mcard-val { color: #e8e8e4; }
+      .mcard-val.pos { color: #97c459; }
+      .mcard-val.neg { color: #f09595; }
+      .mcard-val.warn { color: #ef9f27; }
+      .mcard-sub { color: #777; }
+      .hl-item { background: #2a2a28; border-color: #3a3a38; color: #aaa; }
+      .hl-dot.neu { background: #5f5e5a; }
+      .page-header h1 { color: #e8e8e4; }
+      .page-header p { color: #888; }
+      .section-lbl { color: #777; }
+      .footnote { color: #555; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <h1>State employment situation — February 2026</h1>
+    <p>Search a state to view unemployment, nonfarm payroll, and construction employment data. Source: BLS, released April 22, 2026.</p>
+  </div>
+
+  <div id="search-wrap">
+    <input id="search-input" type="text" placeholder="Search a state or D.C. — e.g. Tennessee, Nevada..." autocomplete="off" />
+    <div id="dropdown"></div>
+  </div>
+
+  <div id="placeholder">Start typing a state name above to see its February 2026 employment data.</div>
+  <div id="result"></div>
+
+</div>
+
+<script>
+const STATES = {
+  "Alabama":             {unemp:2.7,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Alaska":              {unemp:4.7,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:-5.6},
+  "Arizona":             {unemp:4.3,  nfpMoM:11.0,   nfpMoMp:0.3,   nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Arkansas":            {unemp:4.1,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "California":          {unemp:5.4,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:120.5,  nfpYoYp:0.7,   conMoM:null,  conMoMp:null,  conYoY:-10.3, conYoYp:null},
+  "Colorado":            {unemp:3.8,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Connecticut":         {unemp:4.7,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:0.1,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Delaware":            {unemp:5.4,  nfpMoM:null,   nfpMoMp:-0.1,  nfpYoY:null,   nfpYoYp:-0.1,  conMoM:null,  conMoMp:-4.4,  conYoY:null,  conYoYp:null},
+  "District of Columbia":{unemp:6.5,  nfpMoM:null,   nfpMoMp:0.0,   nfpYoY:-42.2,  nfpYoYp:-5.5,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Florida":             {unemp:4.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:1.1,   conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Georgia":             {unemp:3.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:-0.1,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Hawaii":              {unemp:2.3,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Idaho":               {unemp:3.7,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Illinois":            {unemp:4.6,  nfpMoM:-17.8,  nfpMoMp:-0.3,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Indiana":             {unemp:3.3,  nfpMoM:3.6,    nfpMoMp:0.1,   nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Iowa":                {unemp:3.4,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:-19.2,  nfpYoYp:-1.2,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Kansas":              {unemp:3.8,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:0.1,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Kentucky":            {unemp:4.5,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:-0.1,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Louisiana":           {unemp:4.2,  nfpMoM:2.7,    nfpMoMp:0.1,   nfpYoY:null,   nfpYoYp:-0.1,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Maine":               {unemp:3.2,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Maryland":            {unemp:4.3,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:-52.7,  nfpYoYp:-1.9,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Massachusetts":       {unemp:4.8,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Michigan":            {unemp:5.0,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Minnesota":           {unemp:4.5,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Mississippi":         {unemp:3.7,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:-0.1,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Missouri":            {unemp:3.9,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:0.1,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Montana":             {unemp:3.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:1.3,   conYoY:null,  conYoYp:8.8},
+  "Nebraska":            {unemp:3.1,  nfpMoM:-6.5,   nfpMoMp:-0.6,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Nevada":              {unemp:5.3,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:34.5,   nfpYoYp:2.2,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "New Hampshire":       {unemp:3.2,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "New Jersey":          {unemp:5.0,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:-0.1,  conMoM:-5.9,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "New Mexico":          {unemp:4.7,  nfpMoM:2.7,    nfpMoMp:0.1,   nfpYoY:0.5,    nfpYoYp:0.1,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "New York":            {unemp:4.6,  nfpMoM:-22.0,  nfpMoMp:-0.2,  nfpYoY:null,   nfpYoYp:0.1,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "North Carolina":      {unemp:3.9,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "North Dakota":        {unemp:2.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:0.1,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Ohio":                {unemp:4.2,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:0.1,   conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Oklahoma":            {unemp:3.9,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Oregon":              {unemp:5.2,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Pennsylvania":        {unemp:4.2,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Rhode Island":        {unemp:4.3,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "South Carolina":      {unemp:5.0,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:-0.1,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "South Dakota":        {unemp:2.3,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:0,     conMoMp:0,     conYoY:null,  conYoYp:null},
+  "Tennessee":           {unemp:3.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Texas":               {unemp:4.3,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:24.0,  conYoYp:null},
+  "Utah":                {unemp:3.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Vermont":             {unemp:2.8,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Virginia":            {unemp:3.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Washington":          {unemp:5.0,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "West Virginia":       {unemp:4.6,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Wisconsin":           {unemp:3.1,  nfpMoM:null,   nfpMoMp:null,  nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null},
+  "Wyoming":             {unemp:3.4,  nfpMoM:null,   nfpMoMp:0.4,   nfpYoY:null,   nfpYoYp:null,  conMoM:null,  conMoMp:null,  conYoY:null,  conYoYp:null}
+};
+
+const stateNames = Object.keys(STATES).sort();
+const input = document.getElementById('search-input');
+const dropdown = document.getElementById('dropdown');
+const placeholder = document.getElementById('placeholder');
+const result = document.getElementById('result');
+let focusIdx = -1;
+
+function fmtK(v) { return (v > 0 ? '+' : '') + v.toFixed(1) + 'K'; }
+function fmtPct(v) { return (v > 0 ? '+' : '') + v.toFixed(1) + '%'; }
+
+function valClass(v) {
+  if (v == null) return '';
+  if (v > 0) return 'pos';
+  if (v < 0) return 'neg';
+  return '';
+}
+
+function nfpMoMDisplay(d) {
+  if (d.nfpMoM != null) return { val: fmtK(d.nfpMoM), cls: valClass(d.nfpMoM) };
+  if (d.nfpMoMp != null) return { val: fmtPct(d.nfpMoMp), cls: valClass(d.nfpMoMp) };
+  return { val: '—', cls: '' };
+}
+function nfpYoYDisplay(d) {
+  if (d.nfpYoY != null) return { val: fmtK(d.nfpYoY), cls: valClass(d.nfpYoY) };
+  if (d.nfpYoYp != null) return { val: fmtPct(d.nfpYoYp), cls: valClass(d.nfpYoYp) };
+  return { val: '—', cls: '' };
+}
+function conMoMDisplay(d) {
+  if (d.conMoM != null) return { val: fmtK(d.conMoM), cls: valClass(d.conMoM) };
+  if (d.conMoMp != null) return { val: fmtPct(d.conMoMp), cls: valClass(d.conMoMp) };
+  return { val: '—', cls: '' };
+}
+function conYoYDisplay(d) {
+  if (d.conYoY != null) return { val: fmtK(d.conYoY), cls: valClass(d.conYoY) };
+  if (d.conYoYp != null) return { val: fmtPct(d.conYoYp), cls: valClass(d.conYoYp) };
+  return { val: '—', cls: '' };
+}
+
+function unempClass(v) {
+  if (v >= 5.5) return 'neg';
+  if (v <= 3.0) return 'pos';
+  return '';
+}
+
+function vsNational(v) {
+  const diff = (v - 4.4);
+  const dir = diff > 0.05 ? 'above' : diff < -0.05 ? 'below' : 'at';
+  return dir + ' U.S. rate (4.4%)';
+}
+
+function buildHighlights(name, d) {
+  const items = [];
+  const diff = d.unemp - 4.4;
+  const cmp = Math.abs(diff) < 0.05 ? 'at' : diff > 0 ? 'above' : 'below';
+  const tone = diff > 0.5 ? 'neg' : diff < -0.5 ? 'pos' : 'neu';
+  items.push({ dot: tone, text: d.unemp.toFixed(1) + '% unemployment — ' + cmp + ' the national rate of 4.4%' });
+
+  if (d.nfpMoM != null) {
+    items.push({ dot: valClass(d.nfpMoM) || 'neu', text: 'Nonfarm payrolls ' + (d.nfpMoM > 0 ? 'gained' : 'lost') + ' ' + Math.abs(d.nfpMoM).toFixed(1) + 'K jobs Jan \u2192 Feb (' + fmtPct(d.nfpMoMp) + ')' });
+  } else if (d.nfpMoMp != null && d.nfpMoMp !== 0) {
+    items.push({ dot: valClass(d.nfpMoMp) || 'neu', text: 'Nonfarm payrolls changed ' + fmtPct(d.nfpMoMp) + ' month-over-month' });
+  }
+
+  if (d.nfpYoY != null) {
+    items.push({ dot: valClass(d.nfpYoY) || 'neu', text: 'Nonfarm payrolls ' + (d.nfpYoY > 0 ? 'up' : 'down') + ' ' + Math.abs(d.nfpYoY).toFixed(1) + 'K year-over-year (' + fmtPct(d.nfpYoYp) + ')' });
+  } else if (d.nfpYoYp != null) {
+    items.push({ dot: valClass(d.nfpYoYp) || 'neu', text: 'Nonfarm payrolls ' + (d.nfpYoYp > 0 ? 'grew' : 'declined') + ' ' + fmtPct(d.nfpYoYp) + ' year-over-year' });
+  }
+
+  if (d.conMoM != null && d.conMoM !== 0) {
+    items.push({ dot: valClass(d.conMoM) || 'neu', text: 'Construction ' + (d.conMoM > 0 ? 'added' : 'lost') + ' ' + Math.abs(d.conMoM).toFixed(1) + 'K jobs month-over-month' });
+  } else if (d.conMoMp != null && d.conMoMp !== 0) {
+    items.push({ dot: valClass(d.conMoMp) || 'neu', text: 'Construction employment changed ' + fmtPct(d.conMoMp) + ' month-over-month' });
+  }
+
+  if (d.conYoY != null) {
+    items.push({ dot: valClass(d.conYoY) || 'neu', text: 'Construction jobs ' + (d.conYoY > 0 ? 'up' : 'down') + ' ' + Math.abs(d.conYoY).toFixed(1) + 'K year-over-year' });
+  } else if (d.conYoYp != null) {
+    items.push({ dot: valClass(d.conYoYp) || 'neu', text: 'Construction employment ' + (d.conYoYp > 0 ? 'grew' : 'declined') + ' ' + fmtPct(d.conYoYp) + ' year-over-year' });
+  }
+
+  if (items.length === 1) {
+    items.push({ dot: 'neu', text: 'No statistically significant payroll changes reported for this state' });
+  }
+  return items;
+}
+
+function renderState(name) {
+  const d = STATES[name];
+  if (!d) return;
+  placeholder.style.display = 'none';
+  result.style.display = 'block';
+
+  const nfpM = nfpMoMDisplay(d);
+  const nfpY = nfpYoYDisplay(d);
+  const conM = conMoMDisplay(d);
+  const conY = conYoYDisplay(d);
+  const highlights = buildHighlights(name, d);
+
+  const hlHTML = highlights.map(h =>
+    `<div class="hl-item"><div class="hl-dot ${h.dot}"></div><span>${h.text}</span></div>`
+  ).join('');
+
+  result.innerHTML = `
+    <div class="state-header">
+      <span class="state-name">${name}</span>
+      <span class="state-badge">February 2026</span>
+    </div>
+    <div class="metric-grid">
+      <div class="mcard">
+        <div class="mcard-lbl">Unemployment rate</div>
+        <div class="mcard-val ${unempClass(d.unemp)}">${d.unemp.toFixed(1)}%</div>
+        <div class="mcard-sub">${vsNational(d.unemp)}</div>
+      </div>
+      <div class="mcard">
+        <div class="mcard-lbl">Nonfarm payroll MoM</div>
+        <div class="mcard-val ${nfpM.cls}">${nfpM.val}</div>
+        <div class="mcard-sub">Jan &rarr; Feb change</div>
+      </div>
+      <div class="mcard">
+        <div class="mcard-lbl">Nonfarm payroll YoY</div>
+        <div class="mcard-val ${nfpY.cls}">${nfpY.val}</div>
+        <div class="mcard-sub">Feb 2025 &rarr; Feb 2026</div>
+      </div>
+      <div class="mcard">
+        <div class="mcard-lbl">Construction MoM</div>
+        <div class="mcard-val ${conM.cls}">${conM.val}</div>
+        <div class="mcard-sub">Jan &rarr; Feb change</div>
+      </div>
+      <div class="mcard">
+        <div class="mcard-lbl">Construction YoY</div>
+        <div class="mcard-val ${conY.cls}">${conY.val}</div>
+        <div class="mcard-sub">Feb 2025 &rarr; Feb 2026</div>
+      </div>
+    </div>
+    <div class="section-lbl">Key takeaways</div>
+    <div class="highlight-list">${hlHTML}</div>
+    <p class="footnote">&mdash; indicates no statistically significant change reported by BLS. Source: BLS State Employment &amp; Unemployment, released April 22, 2026.</p>
+  `;
+}
+
+function showDropdown(q) {
+  if (q.length < 1) { dropdown.style.display = 'none'; return; }
+  const matches = stateNames.filter(s => s.toLowerCase().startsWith(q.toLowerCase()));
+  if (matches.length === 0) { dropdown.style.display = 'none'; return; }
+  focusIdx = -1;
+  dropdown.innerHTML = matches.map(s => `<div class="dd-item" data-name="${s}">${s}</div>`).join('');
+  dropdown.style.display = 'block';
+  dropdown.querySelectorAll('.dd-item').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      selectState(el.dataset.name);
+    });
+  });
+}
+
+function selectState(name) {
+  input.value = name;
+  dropdown.style.display = 'none';
+  renderState(name);
+}
+
+input.addEventListener('input', () => showDropdown(input.value));
+
+input.addEventListener('keydown', e => {
+  const items = dropdown.querySelectorAll('.dd-item');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    focusIdx = Math.min(focusIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('focused', i === focusIdx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusIdx = Math.max(focusIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('focused', i === focusIdx));
+  } else if (e.key === 'Enter' && focusIdx >= 0) {
+    selectState(items[focusIdx].dataset.name);
+  } else if (e.key === 'Escape') {
+    dropdown.style.display = 'none';
+  }
+});
+
+input.addEventListener('blur', () => setTimeout(() => { dropdown.style.display = 'none'; }, 150));
+</script>
+</body>
+</html>
